@@ -6,6 +6,21 @@
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-dashboard-FF4B4B?logo=streamlit&logoColor=white)
 
+## 🚀 Live Project
+
+<p align="center">
+  <a href="https://shopflow-analytics-nh2a9ucu75xyequqmv94cc.streamlit.app/">
+    <img src="https://img.shields.io/badge/Live%20Dashboard-Open%20App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Live Dashboard"/>
+  </a>
+</p>
+
+🌐 **Live Dashboard:** [Explore ShopFlow Analytics](https://shopflow-analytics-nh2a9ucu75xyequqmv94cc.streamlit.app/)
+
+💻 **GitHub Repository:** [View Source Code](https://github.com/Dharmeshkumar2327/shopflow-analytics)
+
+Explore interactive business insights, revenue trends, customer segmentation, marketing performance, sales analytics, and operational performance through the live ShopFlow Analytics dashboard.
+
+
 An analytics engineering project for **ShopFlow**, a fictional Indian e-commerce marketplace.
 Raw, messy operational data goes in. Tested, documented, business-ready data marts come out, and a
 dashboard and the analyses that leadership actually asks for are built on top of them.
