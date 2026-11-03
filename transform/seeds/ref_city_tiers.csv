@@ -1,0 +1,31 @@
+city,state,city_tier
+Ahmedabad,Gujarat,Tier 1
+Bengaluru,Karnataka,Tier 1
+Chennai,Tamil Nadu,Tier 1
+Delhi,Delhi,Tier 1
+Hyderabad,Telangana,Tier 1
+Kolkata,West Bengal,Tier 1
+Mumbai,Maharashtra,Tier 1
+Pune,Maharashtra,Tier 1
+Bhubaneswar,Odisha,Tier 2
+Chandigarh,Chandigarh,Tier 2
+Coimbatore,Tamil Nadu,Tier 2
+Guwahati,Assam,Tier 2
+Indore,Madhya Pradesh,Tier 2
+Jaipur,Rajasthan,Tier 2
+Kochi,Kerala,Tier 2
+Lucknow,Uttar Pradesh,Tier 2
+Nagpur,Maharashtra,Tier 2
+Patna,Bihar,Tier 2
+Surat,Gujarat,Tier 2
+Visakhapatnam,Andhra Pradesh,Tier 2
+Dehradun,Uttarakhand,Tier 3
+Gaya,Bihar,Tier 3
+Jammu,Jammu and Kashmir,Tier 3
+Madurai,Tamil Nadu,Tier 3
+Mysuru,Karnataka,Tier 3
+Raipur,Chhattisgarh,Tier 3
+Ranchi,Jharkhand,Tier 3
+Shillong,Meghalaya,Tier 3
+Thiruvananthapuram,Kerala,Tier 3
+Varanasi,Uttar Pradesh,Tier 3

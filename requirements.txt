@@ -1,0 +1,8 @@
+# Python 3.11 or 3.12 recommended (dbt-core 1.9 supports 3.9 - 3.12)
+dbt-core>=1.9,<1.10
+dbt-duckdb>=1.9,<1.10
+duckdb>=1.1
+pandas>=2.1
+numpy>=1.26
+streamlit>=1.40
+plotly>=5.20

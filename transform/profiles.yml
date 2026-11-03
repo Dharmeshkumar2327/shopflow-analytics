@@ -1,0 +1,13 @@
+# Local DuckDB profile. Run dbt from this folder with:  dbt build --profiles-dir .
+# (the Makefile does this for you)
+shopflow:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/shopflow.duckdb') }}"
+      threads: 4
+    ci:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/shopflow_ci.duckdb') }}"
+      threads: 4

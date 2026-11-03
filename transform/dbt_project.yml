@@ -1,0 +1,60 @@
+name: shopflow
+version: "1.0.0"
+config-version: 2
+profile: shopflow
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+
+target-path: target
+clean-targets: [target, dbt_packages, logs]
+
+vars:
+  # Reporting "as of" date. Fixed so every run reproduces the same numbers.
+  as_of_date: "2025-12-31"
+  at_risk_after_days: 90
+  churned_after_days: 180
+  ltv_window_days: 180
+  date_spine_start: "2022-01-01"
+  date_spine_end: "2026-12-31"
+
+models:
+  shopflow:
+    staging:
+      +schema: staging
+      +materialized: view
+      +tags: ["staging"]
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+      +tags: ["intermediate"]
+    marts:
+      +materialized: table
+      core:
+        +schema: core
+        +tags: ["core"]
+      finance:
+        +schema: finance
+        +tags: ["finance"]
+      marketing:
+        +schema: marketing
+        +tags: ["marketing"]
+      operations:
+        +schema: operations
+        +tags: ["operations"]
+
+seeds:
+  shopflow:
+    +schema: seeds
+    ref_sale_events:
+      +column_types:
+        start_date: date
+        end_date: date
+
+data_tests:
+  shopflow:
+    +severity: error

@@ -1,0 +1,89 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DUCKDB_PATH: ${{ github.workspace }}/data/shopflow.duckdb
+
+jobs:
+  build-and-test:
+    name: Build warehouse & run all tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate synthetic data (smaller sample for CI speed)
+        run: python scripts/generate_data.py --customers 3000
+
+      - name: Load raw layer into DuckDB
+        run: python scripts/load_raw.py
+
+      - name: dbt debug
+        working-directory: transform
+        run: dbt debug --profiles-dir .
+
+      - name: dbt build (seeds, models, snapshots, data tests, unit tests)
+        working-directory: transform
+        run: dbt build --profiles-dir . --fail-fast
+
+      - name: Compile analyses
+        working-directory: transform
+        run: dbt compile --profiles-dir . --select "resource_type:analysis"
+
+      - name: Dashboard smoke test (imports + every query runs)
+        run: |
+          python - <<'PY'
+          import sys, duckdb
+          sys.path.insert(0, "dashboard")
+          import queries
+          con = duckdb.connect("data/shopflow.duckdb", read_only=True)
+          for name in [n for n in dir(queries) if n.isupper()]:
+              rows = con.execute(f"select count(*) from ({getattr(queries, name)})").fetchone()[0]
+              assert rows > 0, f"{name} returned no rows"
+              print(f"{name:<16} {rows:>6} rows")
+          PY
+
+      - name: Generate dbt docs
+        working-directory: transform
+        run: dbt docs generate --profiles-dir . --static
+
+      - name: Upload docs site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: transform/target
+
+  deploy-docs:
+    name: Publish dbt docs to GitHub Pages
+    needs: build-and-test
+    # Opt-in: enable GitHub Pages (Settings -> Pages -> Source: GitHub Actions), then add a
+    # repository variable ENABLE_DOCS_PAGES = true (Settings -> Secrets and variables -> Actions -> Variables)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_DOCS_PAGES == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

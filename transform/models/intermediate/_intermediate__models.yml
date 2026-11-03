@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: int_order_items__enriched
+    description: Line items joined to products with COGS and gross margin per line.
+    columns:
+      - name: order_item_sk
+        data_tests: [unique, not_null]
+      - name: cogs
+        data_tests: [not_null]
+
+  - name: int_orders__items_rolled_up
+    description: One row per order summarising its line items.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_payments__rolled_up
+    description: One row per order summarising its payments; primary method = the largest tender.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_orders__sequenced
+    description: Each order's position in its customer's purchase history.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_order_number
+        data_tests: [not_null]
+
+  - name: int_customers__order_history
+    description: Lifetime order counts, revenue and margin per purchasing customer.
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+
+  - name: int_customers__rfm_scores
+    description: RFM quintile scores used by `mkt_rfm_segments`.
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: r_score
+        data_tests:
+          - value_between: {min_value: 1, max_value: 5}
+
+unit_tests:
+  - name: test_order_sequencing_per_customer
+    description: >
+      Orders must be numbered per customer in purchase order, only the earliest is
+      flagged as the first order, and the gap to the previous order is in days.
+    model: int_orders__sequenced
+    given:
+      - input: ref('stg_shopflow__orders')
+        rows:
+          - {order_id: "O3", customer_id: "C1", purchased_at: "2024-03-20 10:00:00"}
+          - {order_id: "O1", customer_id: "C1", purchased_at: "2024-01-01 09:00:00"}
+          - {order_id: "O2", customer_id: "C1", purchased_at: "2024-01-31 18:30:00"}
+          - {order_id: "O4", customer_id: "C2", purchased_at: "2024-02-15 12:00:00"}
+    expect:
+      rows:
+        - {order_id: "O1", customer_order_number: 1, is_first_order: true,  days_since_previous_order: null}
+        - {order_id: "O2", customer_order_number: 2, is_first_order: false, days_since_previous_order: 30}
+        - {order_id: "O3", customer_order_number: 3, is_first_order: false, days_since_previous_order: 49}
+        - {order_id: "O4", customer_order_number: 1, is_first_order: true,  days_since_previous_order: null}

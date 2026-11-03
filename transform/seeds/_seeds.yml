@@ -1,0 +1,33 @@
+version: 2
+
+seeds:
+  - name: ref_indian_states
+    description: Reference list of Indian states / UTs with official codes and a sales region.
+    columns:
+      - name: state
+        data_tests: [unique, not_null]
+      - name: region
+        data_tests:
+          - accepted_values:
+              values: ["North", "South", "East", "West", "Central", "Northeast"]
+
+  - name: ref_city_tiers
+    description: City tier classification used for delivery SLAs and market sizing.
+    columns:
+      - name: city
+        data_tests: [unique, not_null]
+      - name: state
+        data_tests:
+          - relationships:
+              to: ref('ref_indian_states')
+              field: state
+      - name: city_tier
+        data_tests:
+          - accepted_values:
+              values: ["Tier 1", "Tier 2", "Tier 3"]
+
+  - name: ref_sale_events
+    description: Marketplace-wide sale windows (festive season = 30 days before Diwali to 7 days after).
+    columns:
+      - name: event_name
+        data_tests: [unique, not_null]

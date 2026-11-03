@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: fin_monthly_kpis
+    description: >
+      Executive KPI table - one row per month. Net revenue, gross margin, AOV,
+      cancellation & return rates, payment mix, MoM / YoY growth and FYTD revenue.
+    columns:
+      - name: order_month
+        data_tests: [unique, not_null]
+      - name: net_revenue
+        data_tests: [not_null, is_non_negative]
+      - name: cancellation_rate
+        data_tests:
+          - value_between: {min_value: 0, max_value: 1}
+      - name: return_rate
+        data_tests:
+          - value_between: {min_value: 0, max_value: 1}
+
+  - name: fin_payment_method_mix
+    description: Monthly order share and value share by primary payment method.
+    data_tests:
+      - unique_combination:
+          columns: ["order_month", "payment_method"]
+    columns:
+      - name: order_share
+        data_tests:
+          - value_between: {min_value: 0, max_value: 1}
+
+  - name: fin_category_performance
+    description: Category-level revenue, margin, discount and return rate per Indian fiscal year.
+    data_tests:
+      - unique_combination:
+          columns: ["fiscal_year", "category"]

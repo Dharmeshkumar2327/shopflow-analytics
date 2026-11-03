@@ -1,0 +1,40 @@
+version: 2
+
+sources:
+  - name: shopflow
+    description: >
+      Raw extracts from the ShopFlow marketplace's operational database, landed
+      as-is (every column VARCHAR) into the `raw` schema by `scripts/load_raw.py`.
+    schema: raw
+    tables:
+      - name: customers
+        description: Customer master. Contains CDC-style duplicates (same customer_id, later `_loaded_at`).
+        columns:
+          - name: customer_id
+            data_tests: [not_null]
+      - name: sellers
+        columns:
+          - name: seller_id
+            data_tests: [unique, not_null]
+      - name: products
+        columns:
+          - name: product_id
+            data_tests: [unique, not_null]
+      - name: orders
+        columns:
+          - name: order_id
+            data_tests: [unique, not_null]
+      - name: order_items
+        columns:
+          - name: order_id
+            data_tests: [not_null]
+      - name: payments
+        columns:
+          - name: payment_id
+            data_tests: [unique, not_null]
+      - name: reviews
+        columns:
+          - name: review_id
+            data_tests: [unique, not_null]
+      - name: marketing_spend
+        description: Daily paid-media spend by acquisition channel (INR).

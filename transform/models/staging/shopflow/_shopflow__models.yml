@@ -1,0 +1,133 @@
+version: 2
+
+models:
+  - name: stg_shopflow__customers
+    description: One row per customer (latest version). Text normalised; PII limited to email.
+    columns:
+      - name: customer_id
+        description: Natural key of the customer.
+        data_tests: [unique, not_null]
+      - name: city_key
+        description: Lower-cased, trimmed city used to join `ref_city_tiers`.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('ref_city_tiers')
+              field: lower(city)
+      - name: acquisition_channel
+        data_tests:
+          - accepted_values:
+              values: ["organic", "paid_search", "social", "referral", "email", "affiliate"]
+
+  - name: stg_shopflow__sellers
+    columns:
+      - name: seller_id
+        data_tests: [unique, not_null]
+
+  - name: stg_shopflow__products
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: seller_id
+        data_tests:
+          - relationships:
+              to: ref('stg_shopflow__sellers')
+              field: seller_id
+      - name: list_price
+        data_tests: [not_null, is_non_negative]
+      - name: cost_price
+        data_tests: [not_null, is_non_negative]
+      - name: category
+        data_tests:
+          - accepted_values:
+              values: ["Electronics", "Fashion", "Home & Kitchen", "Beauty", "Books", "Sports", "Grocery", "Toys"]
+
+  - name: stg_shopflow__orders
+    description: One row per order with typed timestamps and a clean status.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_shopflow__customers')
+              field: customer_id
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              values: ["processing", "shipped", "delivered", "returned", "cancelled"]
+      - name: order_channel
+        data_tests:
+          - accepted_values:
+              values: ["android", "ios", "web"]
+      - name: shipped_at
+        data_tests:
+          - not_before:
+              other_column: purchased_at
+      - name: delivered_at
+        data_tests:
+          - not_before:
+              other_column: shipped_at
+
+  - name: stg_shopflow__order_items
+    description: One row per line item in an order.
+    columns:
+      - name: order_item_sk
+        description: Surrogate key = md5(order_id || order_item_id).
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests:
+          - relationships:
+              to: ref('stg_shopflow__orders')
+              field: order_id
+      - name: product_id
+        data_tests:
+          - relationships:
+              to: ref('stg_shopflow__products')
+              field: product_id
+      - name: quantity
+        data_tests:
+          - value_between:
+              min_value: 1
+              max_value: 20
+      - name: net_amount
+        data_tests: [is_non_negative]
+
+  - name: stg_shopflow__payments
+    columns:
+      - name: payment_id
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests:
+          - relationships:
+              to: ref('stg_shopflow__orders')
+              field: order_id
+      - name: payment_method
+        description: Normalised payment method (raw data has 15+ spellings).
+        data_tests:
+          - accepted_values:
+              values: ["upi", "credit_card", "debit_card", "cod", "wallet", "netbanking", "emi"]
+      - name: payment_status
+        data_tests:
+          - accepted_values:
+              values: ["captured", "pending", "refunded", "voided"]
+
+  - name: stg_shopflow__reviews
+    columns:
+      - name: review_id
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests: [unique]
+      - name: rating
+        data_tests:
+          - value_between:
+              min_value: 1
+              max_value: 5
+
+  - name: stg_shopflow__marketing_spend
+    columns:
+      - name: spend_sk
+        data_tests: [unique, not_null]
+      - name: spend_inr
+        data_tests: [is_non_negative]

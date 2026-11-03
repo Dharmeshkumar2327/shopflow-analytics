@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: ops_delivery_performance
+    description: Monthly delivery speed, on-time rate and rating impact by region and city tier.
+    data_tests:
+      - unique_combination:
+          columns: ["order_month", "region", "city_tier"]
+    columns:
+      - name: on_time_rate
+        data_tests:
+          - value_between: {min_value: 0, max_value: 1}
+
+  - name: ops_seller_scorecard
+    description: >
+      One row per seller with GMV, revenue, cancellation / return / on-time rates, average
+      rating, a weighted 0-100 seller score and a tier (Gold / Silver / Bronze / Needs Improvement).
+    columns:
+      - name: seller_id
+        data_tests: [unique, not_null]
+      - name: seller_score
+        data_tests:
+          - value_between: {min_value: 0, max_value: 100}
+      - name: seller_tier
+        data_tests:
+          - accepted_values:
+              values: ["Gold", "Silver", "Bronze", "Needs Improvement", "Not rated (< 30 orders)"]

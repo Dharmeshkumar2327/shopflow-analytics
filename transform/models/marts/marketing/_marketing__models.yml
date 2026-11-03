@@ -1,0 +1,70 @@
+version: 2
+
+models:
+  - name: mkt_customer_cohorts
+    description: >
+      Cohort retention table. One row per (first-order month, months since first order).
+      Feeds the retention heat-map and LTV curve in the dashboard.
+    data_tests:
+      - unique_combination:
+          columns: ["cohort_month", "months_since_first_order"]
+    columns:
+      - name: retention_rate
+        data_tests:
+          - value_between: {min_value: 0, max_value: 1}
+
+  - name: mkt_rfm_segments
+    description: >
+      RFM segmentation of every customer with a completed order, plus the CRM action
+      recommended for each segment.
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: rfm_segment
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ["Champions", "Cannot Lose Them", "Loyal", "New Customers",
+                       "Potential Loyalists", "Need Attention", "At Risk", "Hibernating"]
+
+  - name: mkt_channel_performance
+    description: >
+      Monthly CAC, 180-day LTV and LTV:CAC (on gross margin) by acquisition channel.
+      Use `is_ltv_window_complete` to exclude cohorts that have not matured yet.
+    data_tests:
+      - unique_combination:
+          columns: ["month", "channel"]
+    columns:
+      - name: new_customers
+        data_tests: [not_null, is_non_negative]
+
+unit_tests:
+  - name: test_rfm_segment_rules
+    description: Each RFM score pattern lands in the intended segment (first matching rule wins).
+    model: mkt_rfm_segments
+    given:
+      - input: ref('int_customers__rfm_scores')
+        rows:
+          - {customer_id: "champion",   r_score: 5, f_score: 5, m_score: 5}
+          - {customer_id: "cant_lose",  r_score: 1, f_score: 5, m_score: 5}
+          - {customer_id: "loyal",      r_score: 3, f_score: 4, m_score: 2}
+          - {customer_id: "new",        r_score: 5, f_score: 1, m_score: 1}
+          - {customer_id: "potential",  r_score: 4, f_score: 2, m_score: 3}
+          - {customer_id: "attention",  r_score: 3, f_score: 2, m_score: 3}
+          - {customer_id: "at_risk",    r_score: 2, f_score: 3, m_score: 2}
+          - {customer_id: "hibernate",  r_score: 1, f_score: 1, m_score: 1}
+    expect:
+      rows:
+        - {customer_id: "champion",  rfm_segment: "Champions"}
+        - {customer_id: "cant_lose", rfm_segment: "Cannot Lose Them"}
+        - {customer_id: "loyal",     rfm_segment: "Loyal"}
+        - {customer_id: "new",       rfm_segment: "New Customers"}
+        - {customer_id: "potential", rfm_segment: "Potential Loyalists"}
+        - {customer_id: "attention", rfm_segment: "Need Attention"}
+        - {customer_id: "at_risk",   rfm_segment: "At Risk"}
+        - {customer_id: "hibernate", rfm_segment: "Hibernating"}
